@@ -1,59 +1,34 @@
-import { useEffect, useState } from 'react'
-import { Routes, Route, Navigate, Link } from 'react-router-dom'
-import { supabase } from './lib/supabase'
-import Login from './pages/Login'
-import Dashboard from './pages/Dashboard'
-import Add from './pages/Add'
-import History from './pages/History'
+import { useEffect, useState } from "react";
+import { supabase } from "./lib/supabase";
+
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
 
 export default function App() {
-  const [session, setSession] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
-      setLoading(false)
-    })
+      setSession(data.session);
+      setLoading(false);
+    });
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession)
-    })
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+      setSession(s);
+    });
 
-    return () => sub.subscription.unsubscribe()
-  }, [])
+    return () => sub.subscription.unsubscribe();
+  }, []);
 
-  if (loading) return <div style={{ padding: 20 }}>Loading…</div>
-  if (!session) return <Login />
+  if (loading) return <div className="p-6">Loading…</div>;
+  if (!session) return <Login />;
 
   return (
-    <div>
-      <header style={{ padding: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 style={{ margin: 0 }}>Expense Tracker</h1>
-        <button onClick={() => supabase.auth.signOut()}>Sign out</button>
-      </header>
-
-      <nav style={{ padding: 20, display: 'flex', gap: 12 }}>
-        <Link to="/">Dashboard</Link>
-        <Link to="/add">Add</Link>
-        <Link to="/history">History</Link>
-      </nav>
-
-      <Routes>
-        <Route path="/" element={<Dashboard session={session} />} />
-        <Route path="/add" element={<Add session={session} />} />
-        <Route path="/history" element={<History session={session} />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </div>
-  )
-}
-export default function App() {
-  return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <h1 className="text-5xl font-bold text-blue-600">
-        Tailwind works 🚀
-      </h1>
-    </div>
-  )
+   <Dashboard
+    session={session}
+    userEmail={session.user.email}
+    onAddClick={() => (window.location.hash = "#/add")}
+  />
+  );
 }
